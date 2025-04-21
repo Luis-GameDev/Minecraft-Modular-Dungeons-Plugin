@@ -1,0 +1,11 @@
+name: ModularDungeons
+main: me.luisgamedev.ModularDungeons
+version: 1.0
+api-version: 1.20
+author: luisgamedev
+commands:
+  dungeons:
+    description: Dungeon commands
+    usage: /<command>
+    permission: modulardungeons.use
+    permission-message: You don't have permission to use this.
