@@ -89,7 +89,6 @@ public class TileLoader {
                                 BlockVector3 pos = BlockVector3.at(x, y, z);
                                 BlockState block = clipboard.getBlock(pos);
 
-                                // Debug: logge ALLE Blöcke, um zu sehen was WorldEdit wirklich sieht
                                 ModularDungeons.getInstance().getLogger().info(String.format(
                                         "BLOCK at (%d,%d,%d): %s",
                                         x, y, z, clipboard.getBlock(pos).getBlockType().getId()
@@ -104,14 +103,6 @@ public class TileLoader {
                                     ));
                                     if (face != BlockFace.SELF) {
                                         connectors.add(face);
-                                    }
-                                } else {
-                                    // Debug: Ähnliche Blöcke (z. B. diamond_ore) auflisten
-                                    if (block.getBlockType().getId().toLowerCase().contains("diamond")) {
-                                        ModularDungeons.getInstance().getLogger().info(String.format(
-                                                "Found diamond-like block at (%d,%d,%d): %s (ignored)",
-                                                x, y, z, block.getBlockType().getId()
-                                        ));
                                     }
                                 }
                             }
