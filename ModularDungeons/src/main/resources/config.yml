@@ -1,0 +1,4 @@
+dungeons:
+  MyFirstDungeon:
+    mainpathlength: 30
+    connectorblock: DIAMOND_BLOCK
