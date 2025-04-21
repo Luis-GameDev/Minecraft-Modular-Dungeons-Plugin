@@ -2,15 +2,16 @@ package me.luisgamedev.tiles;
 
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockType;
+import com.sk89q.worldedit.world.block.BlockTypes;
 import me.luisgamedev.ModularDungeons;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
-import com.sk89q.worldedit.world.block.BlockState;
 
 import java.io.*;
 import java.util.*;
@@ -21,7 +22,7 @@ public class TileLoader {
 
     public static void loadAllTiles(File tilesFolder) {
         loadedTiles.clear();
-        if (!tilesFolder.exists()) return;
+        if (tilesFolder == null || !tilesFolder.exists()) return;
 
         File[] sets = tilesFolder.listFiles(File::isDirectory);
         if (sets == null) return;
@@ -60,7 +61,7 @@ public class TileLoader {
                     }
 
                     TileType type = TileType.fromString(properties.getProperty("type"));
-                    int spawnrate = Integer.parseInt(properties.getProperty("spawnrate"));
+                    int spawnrate = Integer.parseInt(properties.getProperty("spawnrate", "1"));
 
                     ClipboardFormat format = ClipboardFormats.findByFile(schem);
                     if (format == null) continue;
@@ -70,14 +71,17 @@ public class TileLoader {
                         clipboard = reader.read();
                     }
 
-                    int width = clipboard.getDimensions().getX();
-                    int height = clipboard.getDimensions().getY();
-                    int length = clipboard.getDimensions().getZ();
+                    int width = clipboard.getDimensions().getBlockX();
+                    int height = clipboard.getDimensions().getBlockY();
+                    int length = clipboard.getDimensions().getBlockZ();
 
                     BoundingBox box = new BoundingBox(0, 0, 0, width - 1, height - 1, length - 1);
 
                     List<BlockFace> connectors = new ArrayList<>();
-                    BlockType connectorType = BlockType.REGISTRY.get("minecraft:" + connectorMaterial.name().toLowerCase());
+                    String connectorId = "minecraft:" + connectorMaterial.name().toLowerCase();
+                    BlockType connectorType = BlockTypes.get(connectorId);
+
+                    ModularDungeons.getInstance().getLogger().info("Scanning " + schem.getName() + " for connector blocks (expecting: " + connectorId + ")");
 
                     for (int x = 0; x < width; x++) {
                         for (int y = 0; y < height; y++) {
@@ -85,10 +89,29 @@ public class TileLoader {
                                 BlockVector3 pos = BlockVector3.at(x, y, z);
                                 BlockState block = clipboard.getBlock(pos);
 
-                                if (block.getBlockType().equals(connectorType)) {
+                                // Debug: logge ALLE Blöcke, um zu sehen was WorldEdit wirklich sieht
+                                ModularDungeons.getInstance().getLogger().info(String.format(
+                                        "BLOCK at (%d,%d,%d): %s",
+                                        x, y, z, clipboard.getBlock(pos).getBlockType().getId()
+                                ));
+
+
+                                if (block.getBlockType().getId().equalsIgnoreCase(connectorId)) {
                                     BlockFace face = getFacingDirection(x, z, width, length);
+                                    ModularDungeons.getInstance().getLogger().info(String.format(
+                                            "Connector candidate at (%d,%d,%d) → face: %s → valid: %s",
+                                            x, y, z, face, face != BlockFace.SELF
+                                    ));
                                     if (face != BlockFace.SELF) {
                                         connectors.add(face);
+                                    }
+                                } else {
+                                    // Debug: Ähnliche Blöcke (z. B. diamond_ore) auflisten
+                                    if (block.getBlockType().getId().toLowerCase().contains("diamond")) {
+                                        ModularDungeons.getInstance().getLogger().info(String.format(
+                                                "Found diamond-like block at (%d,%d,%d): %s (ignored)",
+                                                x, y, z, block.getBlockType().getId()
+                                        ));
                                     }
                                 }
                             }
@@ -116,11 +139,11 @@ public class TileLoader {
     }
 
     private static BlockFace getFacingDirection(int x, int z, int width, int length) {
-        if (x == 0) return BlockFace.WEST;
-        if (x == width - 1) return BlockFace.EAST;
-        if (z == 0) return BlockFace.NORTH;
-        if (z == length - 1) return BlockFace.SOUTH;
-        return BlockFace.SELF; // Nicht an der Außenseite
+        if (x <= 1) return BlockFace.WEST;
+        if (x >= width - 2) return BlockFace.EAST;
+        if (z <= 1) return BlockFace.NORTH;
+        if (z >= length - 2) return BlockFace.SOUTH;
+        return BlockFace.SELF;
     }
 
     public static Map<String, List<TileData>> getLoadedTiles() {

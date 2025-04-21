@@ -1,5 +1,6 @@
 package me.luisgamedev;
 
+import me.luisgamedev.commands.DungeonCommand;
 import me.luisgamedev.tiles.TileLoader;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,9 +15,12 @@ public class ModularDungeons extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
-        getLogger().info("ModularDungeons has been enabled!");
-        TileLoader.loadAllTiles(getTilesFolder());
+
         setupTilesFolder();
+        TileLoader.loadAllTiles(getTilesFolder());
+        getCommand("dungeons").setExecutor(new DungeonCommand());
+
+        getLogger().info("ModularDungeons has been enabled!");
     }
 
     @Override
