@@ -71,9 +71,14 @@ public class TileLoader {
                         clipboard = reader.read();
                     }
 
-                    int width = clipboard.getDimensions().getBlockX();
-                    int height = clipboard.getDimensions().getBlockY();
-                    int length = clipboard.getDimensions().getBlockZ();
+                    // Wichtig: Hole die Dimensionen und die Ursprungsposition des Clipboards
+                    BlockVector3 dimensions = clipboard.getDimensions();
+                    BlockVector3 origin = clipboard.getOrigin();
+                    BlockVector3 minPoint = clipboard.getMinimumPoint();
+
+                    int width = dimensions.getBlockX();
+                    int height = dimensions.getBlockY();
+                    int length = dimensions.getBlockZ();
 
                     BoundingBox box = new BoundingBox(0, 0, 0, width - 1, height - 1, length - 1);
 
@@ -81,28 +86,55 @@ public class TileLoader {
                     String connectorId = "minecraft:" + connectorMaterial.name().toLowerCase();
                     BlockType connectorType = BlockTypes.get(connectorId);
 
-                    ModularDungeons.getInstance().getLogger().info("Scanning " + schem.getName() + " for connector blocks (expecting: " + connectorId + ")");
+                    if (connectorType == null) {
+                        ModularDungeons.getInstance().getLogger().warning("Could not find BlockType for: " + connectorId);
+                        continue;
+                    }
 
+                    ModularDungeons.getInstance().getLogger().info("Scanning " + schem.getName() + " for connector blocks (expecting: " + connectorId + ")");
+                    ModularDungeons.getInstance().getLogger().info("Clipboard dimensions: " + dimensions);
+                    ModularDungeons.getInstance().getLogger().info("Clipboard origin: " + origin);
+                    ModularDungeons.getInstance().getLogger().info("Clipboard minimum point: " + minPoint);
+
+                    // Durchlaufe den gesamten Bereich des Clipboards
                     for (int x = 0; x < width; x++) {
                         for (int y = 0; y < height; y++) {
                             for (int z = 0; z < length; z++) {
-                                BlockVector3 pos = BlockVector3.at(x, y, z);
-                                BlockState block = clipboard.getBlock(pos);
+                                // Berechne die Position relativ zum Minimum des Clipboards
+                                BlockVector3 pos = minPoint.add(x, y, z);
+                                BlockState block;
 
-                                ModularDungeons.getInstance().getLogger().info(String.format(
-                                        "BLOCK at (%d,%d,%d): %s",
-                                        x, y, z, clipboard.getBlock(pos).getBlockType().getId()
-                                ));
+                                try {
+                                    block = clipboard.getBlock(pos);
+                                } catch (Exception e) {
+                                    ModularDungeons.getInstance().getLogger().warning(
+                                            String.format("Error getting block at (%d,%d,%d): %s",
+                                                    pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), e.getMessage())
+                                    );
+                                    continue;
+                                }
 
+                                if (block == null) {
+                                    continue;
+                                }
 
-                                if (block.getBlockType().getId().equalsIgnoreCase(connectorId)) {
-                                    BlockFace face = getFacingDirection(x, z, width, length);
+                                // Debugging-Ausgabe für jeden Block, der nicht Air ist
+                                if (!block.getBlockType().getId().equals("minecraft:air")) {
                                     ModularDungeons.getInstance().getLogger().info(String.format(
-                                            "Connector candidate at (%d,%d,%d) → face: %s → valid: %s",
-                                            x, y, z, face, face != BlockFace.SELF
+                                            "NON-AIR BLOCK at (%d,%d,%d): %s",
+                                            pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), block.getBlockType().getId()
                                     ));
-                                    if (face != BlockFace.SELF) {
-                                        connectors.add(face);
+
+                                    // Prüfe explizit, ob der Block-ID mit der erwarteten Connector-ID übereinstimmt
+                                    if (block.getBlockType().getId().equalsIgnoreCase(connectorId)) {
+                                        BlockFace face = getFacingDirection(x, z, width, length);
+                                        ModularDungeons.getInstance().getLogger().info(String.format(
+                                                "CONNECTOR FOUND at (%d,%d,%d) → face: %s → valid: %s",
+                                                pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), face, face != BlockFace.SELF
+                                        ));
+                                        if (face != BlockFace.SELF) {
+                                            connectors.add(face);
+                                        }
                                     }
                                 }
                             }
@@ -111,6 +143,8 @@ public class TileLoader {
 
                     if (connectors.isEmpty()) {
                         ModularDungeons.getInstance().getLogger().warning("No connector blocks found in " + schem.getName());
+                    } else {
+                        ModularDungeons.getInstance().getLogger().info("Found " + connectors.size() + " connectors in " + schem.getName());
                     }
 
                     TileData tile = new TileData(schem, type, spawnrate, box, connectors);

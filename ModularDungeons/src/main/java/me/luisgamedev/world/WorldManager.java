@@ -50,7 +50,8 @@ public class WorldManager {
     }
 
     public static void placeDungeonTiles(World world, List<PlacedTile> tiles, Runnable onFinished) {
-        Bukkit.getScheduler().runTaskAsynchronously(ModularDungeons.getInstance(), () -> {
+        // Sicherstellen, dass die WorldEdit-Operationen synchron im Haupt-Thread ausgeführt werden
+        Bukkit.getScheduler().runTask(ModularDungeons.getInstance(), () -> {
             try {
                 for (PlacedTile placed : tiles) {
                     File file = placed.getTileData().getSchematicFile();
@@ -88,4 +89,5 @@ public class WorldManager {
             }
         });
     }
+
 }

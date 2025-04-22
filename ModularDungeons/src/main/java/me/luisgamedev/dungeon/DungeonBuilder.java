@@ -5,6 +5,7 @@ import me.luisgamedev.tiles.TileData;
 import me.luisgamedev.tiles.TileLoader;
 import me.luisgamedev.tiles.TileType;
 import me.luisgamedev.tiles.TileUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -20,7 +21,8 @@ public class DungeonBuilder {
 
     public DungeonBuilder(String setName) {
         this.setName = setName;
-        this.availableTiles = TileLoader.getLoadedTiles().getOrDefault(setName, new ArrayList<>());
+        // Sicherstellen, dass availableTiles eine veränderbare Liste ist
+        this.availableTiles = new ArrayList<>(TileLoader.getLoadedTiles().getOrDefault(setName, new ArrayList<>()));
         this.mainPathLength = ModularDungeons.getInstance().getConfig().getInt("dungeons." + setName + ".mainpathlength", 10);
     }
 
@@ -48,7 +50,7 @@ public class DungeonBuilder {
         for (BlockFace lastConnector : lastConnectors) {
             BlockFace incomingSide = lastConnector.getOppositeFace();
 
-            List<TileData> candidates = getTilesByType(type);
+            List<TileData> candidates = new ArrayList<>(getTilesByType(type));
             Collections.shuffle(candidates);
 
             for (TileData candidate : candidates) {
@@ -61,6 +63,12 @@ public class DungeonBuilder {
                     if (!isColliding(newPos, candidate, rotation)) {
                         PlacedTile newTile = new PlacedTile(candidate, newPos, rotation, incomingSide);
                         placedTiles.add(newTile);
+
+                        ModularDungeons.getInstance().getLogger().info(String.format(
+                                "Placing tile of type %s at position: (%.1f, %.1f, %.1f)",
+                                type.name(),
+                                newPos.getX(), newPos.getY(), newPos.getZ()
+                        ));
                         return;
                     }
                 }
@@ -69,6 +77,9 @@ public class DungeonBuilder {
 
         ModularDungeons.getInstance().getLogger().warning("Failed to place tile of type " + type + " in main path!");
     }
+
+
+
 
     private Vector getNewTilePosition(PlacedTile anchor, BlockFace anchorOut, TileData nextTile, int rotation) {
         double offsetX = anchor.getTileData().getBoundingBox().getMaxX() - anchor.getTileData().getBoundingBox().getMinX();
