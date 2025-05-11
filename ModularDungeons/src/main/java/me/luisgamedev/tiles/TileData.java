@@ -1,5 +1,6 @@
 package me.luisgamedev.tiles;
 
+import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.block.BlockFace;
 import java.io.File;
@@ -40,4 +41,5 @@ public class TileData {
     public List<BlockFace> getConnectors() {
         return connectors;
     }
+
 }

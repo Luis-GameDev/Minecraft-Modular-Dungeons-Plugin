@@ -1,5 +1,6 @@
 package me.luisgamedev.commands;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import me.luisgamedev.ModularDungeons;
 import me.luisgamedev.dungeon.DungeonBuilder;
 import me.luisgamedev.dungeon.PlacedTile;
@@ -38,7 +39,7 @@ public class DungeonCommand implements CommandExecutor {
         String worldName = "dungeon_" + setName + "_" + System.currentTimeMillis();
 
         WorldManager.createDungeonWorld(worldName, world -> {
-            DungeonBuilder builder = new DungeonBuilder(setName);
+            DungeonBuilder builder = new DungeonBuilder(setName, BukkitAdapter.adapt(world));
             builder.buildMainPath();
 
             List<PlacedTile> tiles = builder.getPlacedTiles();
