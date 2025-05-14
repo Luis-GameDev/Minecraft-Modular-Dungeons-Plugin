@@ -44,6 +44,7 @@ public class DungeonBuilder {
     private final List<TileData> availableTiles;
     private final int mainPathLength;
     private World world;
+    //private int yAxis = 64;
 
     public DungeonBuilder(String setName, World worldd) {
         this.setName = setName;
@@ -114,6 +115,7 @@ public class DungeonBuilder {
                         ModularDungeons.getInstance().getLogger().info("Placed new tile at position: " + newPos);
 
                         Location location = new Location(Bukkit.getWorld(world.getName()), newPos.getX(), newPos.getY(), newPos.getZ());
+                        
                         placeTileInWorld(newPos, candidate, location, rotation);
                         return;
                     } else {
@@ -166,7 +168,7 @@ public class DungeonBuilder {
                     Operation operation = holder
                             .createPaste(editSession)
                             .to(pasteVector)
-                            .ignoreAirBlocks(false)
+                            .ignoreAirBlocks(true)
                             .build();
 
                     Operations.complete(operation);

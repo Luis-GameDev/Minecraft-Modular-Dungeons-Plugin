@@ -31,7 +31,6 @@ public class TileLoader {
             String setName = setFolder.getName();
             List<TileData> tileList = new ArrayList<>();
 
-            // Lade connectorblock aus config.yml
             Material connectorMaterial = Material.DIAMOND_BLOCK;
             String configPath = "dungeons." + setName + ".connectorblock";
             if (ModularDungeons.getInstance().getConfig().isString(configPath)) {
@@ -71,7 +70,6 @@ public class TileLoader {
                         clipboard = reader.read();
                     }
 
-                    // Wichtig: Hole die Dimensionen und die Ursprungsposition des Clipboards
                     BlockVector3 dimensions = clipboard.getDimensions();
                     BlockVector3 origin = clipboard.getOrigin();
                     BlockVector3 minPoint = clipboard.getMinimumPoint();
@@ -96,11 +94,9 @@ public class TileLoader {
                     ModularDungeons.getInstance().getLogger().info("Clipboard origin: " + origin);
                     ModularDungeons.getInstance().getLogger().info("Clipboard minimum point: " + minPoint);
 
-                    // Durchlaufe den gesamten Bereich des Clipboards
                     for (int x = 0; x < width; x++) {
                         for (int y = 0; y < height; y++) {
                             for (int z = 0; z < length; z++) {
-                                // Berechne die Position relativ zum Minimum des Clipboards
                                 BlockVector3 pos = minPoint.add(x, y, z);
                                 BlockState block;
 
@@ -118,14 +114,12 @@ public class TileLoader {
                                     continue;
                                 }
 
-                                // Debugging-Ausgabe für jeden Block, der nicht Air ist
                                 if (!block.getBlockType().getId().equals("minecraft:air")) {
                                     ModularDungeons.getInstance().getLogger().info(String.format(
                                             "NON-AIR BLOCK at (%d,%d,%d): %s",
                                             pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), block.getBlockType().getId()
                                     ));
 
-                                    // Prüfe explizit, ob der Block-ID mit der erwarteten Connector-ID übereinstimmt
                                     if (block.getBlockType().getId().equalsIgnoreCase(connectorId)) {
                                         BlockFace face = getFacingDirection(x, z, width, length);
                                         ModularDungeons.getInstance().getLogger().info(String.format(

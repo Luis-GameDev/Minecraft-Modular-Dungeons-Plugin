@@ -35,7 +35,6 @@ public class DungeonCommand implements CommandExecutor {
 
         player.sendMessage("§7Generating dungeon...");
 
-        // Weltname mit Zeitstempel
         String worldName = "dungeon_" + setName + "_" + System.currentTimeMillis();
 
         WorldManager.createDungeonWorld(worldName, world -> {
@@ -51,7 +50,7 @@ public class DungeonCommand implements CommandExecutor {
 
             ModularDungeons.getInstance().getLogger().info("Pasting dungeon into world: " + worldName);
             WorldManager.placeDungeonTiles(world, tiles, () -> {
-                // Teleportiere den Spieler zum Start-Tile
+
                 PlacedTile start = tiles.get(0);
                 player.teleport(start.getPosition().toLocation(world));
                 player.sendMessage("§aDungeon ready! Teleported to start.");

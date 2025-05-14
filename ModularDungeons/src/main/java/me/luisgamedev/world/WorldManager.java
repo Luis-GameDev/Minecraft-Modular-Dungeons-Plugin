@@ -50,7 +50,6 @@ public class WorldManager {
     }
 
     public static void placeDungeonTiles(World world, List<PlacedTile> tiles, Runnable onFinished) {
-        // Sicherstellen, dass die WorldEdit-Operationen synchron im Haupt-Thread ausgeführt werden
         Bukkit.getScheduler().runTask(ModularDungeons.getInstance(), () -> {
             try {
                 for (PlacedTile placed : tiles) {
@@ -80,7 +79,6 @@ public class WorldManager {
                     }
                 }
 
-                // Rückkehr in Bukkit-Thread
                 Bukkit.getScheduler().runTask(ModularDungeons.getInstance(), onFinished);
 
             } catch (Exception e) {
